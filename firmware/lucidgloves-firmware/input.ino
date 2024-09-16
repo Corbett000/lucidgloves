@@ -193,6 +193,7 @@ void getFingerPositions(bool calibrating, bool reset){
 
   //reset max and mins as needed
   if (reset){
+    // printf("reseting!");
     for (int i = 0; i <2 * NUM_FINGERS; i++){
       #if FLEXION_MIXING == MIXING_SINCOS
       if (i < NUM_FINGERS)
@@ -205,7 +206,9 @@ void getFingerPositions(bool calibrating, bool reset){
   
   //if during the calibration sequence, make sure to update max and mins
   if (calibrating){
+    // printf("calibrating!");
     for (int i = 0; i < 2*NUM_FINGERS; i++){
+      // printf("(%d %d %d %d), ", minFingers[i], rawFingers[i], maxFingers[i], maxTravel[i]);
       if (rawFingers[i] > maxFingers[i])
         #if CLAMP_SENSORS
           maxFingers[i] = ( rawFingers[i] <= CLAMP_MAX )? rawFingers[i] : CLAMP_MAX;
@@ -226,16 +229,16 @@ void getFingerPositions(bool calibrating, bool reset){
   }
   
   for (int i = 0; i<NUM_FINGERS; i++){
-  if (i == target){
     targetFlexionMin = minFingers[i];
     targetFlexionMax = maxFingers[i];
     targetFlexionCurrent = rawFingers[i];
     targetMaxTravel = maxTravel[i];
-  }
+    
     if (minFingers[i] != maxFingers[i]){
       fingerPos[i] = map( rawFingers[i], minFingers[i], maxFingers[i], 0, ANALOG_MAX );
-      if (i == target)
-        targetProcessed = fingerPos[i];
+      targetProcessed = fingerPos[i];
+      // printf("%d, ", fingerPos[i]);
+
       #if CLAMP_ANALOG_MAP
         if (fingerPos[i] < 0)
           fingerPos[i] = 0;
@@ -333,24 +336,29 @@ int sinCosMix(int sinPin, int cosPin, int i){
 
   if (!savedInter){
     //scaling
-    sinMin[i] = min(sinCalib, sinMin[i]);
-    sinMax[i] = max(sinCalib, sinMax[i]);
-
-    cosMin[i] = min(cosCalib, cosMin[i]);
-    cosMax[i] = max(cosCalib, cosMax[i]);
+    printf("Running on saved values\n");
   }
+  sinMin[i] = min(sinCalib, sinMin[i]);
+  sinMax[i] = max(sinCalib, sinMax[i]);
+  if (sinMin[i] < 0) sinMin[i] = sinCalib;
 
-  if (i==target){
-    targetSinMin = sinMin[i];
-    targetSinMax = sinMax[i];
-    targetSinCurrent = sinRaw;
-    targetCosMin = cosMin[i];
-    targetCosMax = cosMax[i];
-    targetCosCurrent = cosRaw;
-  }
+  cosMin[i] = min(cosCalib, cosMin[i]);
+  cosMax[i] = max(cosCalib, cosMax[i]);
+  if (cosMin[i] < 0) cosMin[i] = sinCalib;
+
+  targetSinMin = sinMin[i];
+  targetSinMax = sinMax[i];
+  targetSinCurrent = sinRaw;
+  targetCosMin = cosMin[i];
+  targetCosMax = cosMax[i];
+  targetCosCurrent = cosRaw;
 
   int sinScaled = map(sinRaw, sinMin[i], sinMax[i], -ANALOG_MAX, ANALOG_MAX);
   int cosScaled = map(cosRaw, cosMin[i], cosMax[i], -ANALOG_MAX, ANALOG_MAX);
+  
+  // if (i == 4) {
+  //   printf("Pin (%d,%d) Raw: (%d,%d) Min: (%d,%d) Max: (%d,%d) Scaled: (%d,%d) ", sinPin, cosPin, sinRaw, cosRaw, sinMin[i], cosMin[i], sinMax[i], cosMax[i], sinScaled, cosScaled);
+  // }
 
 
   //trigonometry stuffs
@@ -364,6 +372,9 @@ int sinCosMix(int sinPin, int cosPin, int i){
   double totalAngle = angleRaw + 2*PI * totalOffset1[i];
   
 
+  // if (i == 4) {
+  //   printf("Angle: (%lf,%lf) \n", angleRaw, totalAngle);
+  // }
   return (int)(totalAngle * ANALOG_MAX);
   
 }
@@ -437,7 +448,7 @@ void loadTravel()
   int addr = 0x01;  // Start address for flexion and splay values
 
   for (int i = 0; i < 2*NUM_FINGERS; i++) {
-    EEPROM.get(addr, maxTravel[i]); // Load the max travel value from the EEPROM at the current address
+    // EEPROM.get(addr, maxTravel[i]); // Load the max travel value from the EEPROM at the current address
     addr += sizeof(int); // Increment the address by 4 because we're storing int values
   }
 }

@@ -44,13 +44,17 @@ void getInputs(void* parameter){
 
 int loops = 0;
 void setup() {
-  pinMode(32, INPUT_PULLUP);
-  pinMode(DEBUG_LED, OUTPUT);
-  digitalWrite(DEBUG_LED, HIGH);
+  Serial.begin(SERIAL_BAUD_RATE);
+  Serial.println("ESP32 Booting...");
+  pinMode(PIN_CALIB, INPUT_PULLUP);
+  // pinMode(DEBUG_LED, OUTPUT);
+  // digitalWrite(DEBUG_LED, HIGH);
   #if COMMUNICATION == COMM_SERIAL
     comm = new SerialCommunication();
   #elif COMMUNICATION == COMM_BTSERIAL
     comm = new BTSerialCommunication();
+  #elif COMMUNICATION == COMM_BLESERIAL
+    comm = new BLESerialCommunication();
   #endif  
   comm->start();
 
@@ -78,30 +82,33 @@ int mainMicros = 0;
 int mainMicrosTotal = 0;
 int mainloops = 1;
 
-int target = 0;
-bool latch = false;
+// int target = 0;
+// bool latch = false;
 
 void loop() {
   mainloops++;
+  // Serial.println(mainloops);
+  // printf("Loop: %d\n", mainloops);
+  // Serial.flush();
   mainMicros = micros() - lastMainMicros;
   mainMicrosTotal += mainMicros;
   lastMainMicros = micros();
 
-  if (!digitalRead(27)){
-    if (!latch){
-       target++;
-       target %= 5;
+  // if (!digitalRead(27)){
+  //   if (!latch){
+  //      target++;
+  //      target %= 5;
 
-       latch = true;
-    }
-  }
-  else
-    latch = false;
+  //      latch = true;
+  //   }
+  // }
+  // else
+  //   latch = false;
   
   if (comm->isOpen()){
     #if USING_CALIB_PIN
     calibButton = getButton(PIN_CALIB) != INVERT_CALIB;
-    //Serial.println(getButton(PIN_CALIB));
+    // Serial.println(getButton(PIN_CALIB));
     if (calibButton)
       loops = 0;
     #else
@@ -157,7 +164,9 @@ void loop() {
       //memcpy(fingerPosCopy, fingerPos, sizeof(fingerPos));
       for (int i = 0; i < 10; i++){
         fingerPosCopy[i] = fingerPos[i];
+        // printf("%d: %d,", i, fingerPos[i]);
       }
+      // printf("\n");
       #if ESP32_DUAL_CORE_SET
       fingerPosLock->unlock();
       #endif

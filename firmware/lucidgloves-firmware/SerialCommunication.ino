@@ -19,6 +19,7 @@ class SerialCommunication : public ICommunication {
 
     void output(char* data){
       Serial.print(data);
+      printf("%s", data);
       Serial.flush();
     }
 
