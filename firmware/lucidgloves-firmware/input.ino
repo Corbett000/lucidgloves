@@ -120,7 +120,8 @@ int analogPinRead(int pin){
     return analogRead(pin);
   }
   #else
-   return analogRead(UNMUX(pin));
+  //  return analogRead(UNMUX(pin)); // Why unmux if not using a multiplexer?
+   return analogRead(pin);
   #endif
 }
 
@@ -228,7 +229,7 @@ void getFingerPositions(bool calibrating, bool reset){
     }
   }
   
-  for (int i = 0; i<NUM_FINGERS; i++){
+  for (int i = 0; i<NUM_FINGERS*2; i++){
     targetFlexionMin = minFingers[i];
     targetFlexionMax = maxFingers[i];
     targetFlexionCurrent = rawFingers[i];
