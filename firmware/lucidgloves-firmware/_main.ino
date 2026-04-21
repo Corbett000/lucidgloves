@@ -176,12 +176,16 @@ void loop() {
     comm->output(encode(fingerPosCopy, getJoyX(), getJoyY(), joyButton, triggerButton, aButton, bButton, grabButton, pinchButton, calibButton, menuButton));
     #if USING_FORCE_FEEDBACK
       char received[100];
-      if (comm->readData(received)){
+      if (Serial.available() > 0 && comm->readData(received)) {
+        Serial.print(received);
+        Serial.print("received\n");
+        printf("%sreceived\n", received);
+        Serial.flush();
         int hapticLimits[5];
         //This check is a temporary hack to fix an issue with haptics on v0.5 of the driver, will make it more snobby code later
         if(String(received).length() >= 5) {
-           decodeData(received, hapticLimits);
-           writeServoHaptics(hapticLimits); 
+          decodeData(received, hapticLimits);
+          writeServoHaptics(hapticLimits);
         }
       }
     #endif
