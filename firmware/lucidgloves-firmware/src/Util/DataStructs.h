@@ -35,7 +35,5 @@ struct OutboundData {
     bool calib;
     bool menu;
 
-    #if USING_SPLAY
     int splay[NUM_FINGERS];
-    #endif
 };
